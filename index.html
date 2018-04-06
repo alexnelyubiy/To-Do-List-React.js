@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <title>ToDo App</title>
+  <style>
+  html {
+    margin: 0px;
+    height: 100%;
+    box-sizing: border-box;
+  }
+  body{
+    margin: 0px;
+    height: 100%;
+    font-family: sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  .TodoApp {
+    background: rgba(0, 102, 205, 0.28);
+    display: flex;
+    flex-direction: column;
+    align-items: center;    
+  }
+
+  ul {
+    padding: 0px;
+    margin: 0px;
+    width: 100%;
+  }
+  li {
+    cursor: pointer;
+    position: relative;
+    padding: 12px 8px 12px 0px;
+    background: #eee;
+    font-size: 20px;
+    transition: 0.2s;
+    list-style: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+  li:nth-child(odd) {
+      background: #f9f9f9;
+  }
+
+  li:hover {
+      background: #ddd;
+  }
+  .completed {
+    background: #888;
+      color: #fff;
+      text-decoration: line-through;
+  }
+  .completed::before {
+      content: '';
+      position: absolute;
+  }
+
+  span.Badge {
+      padding: 16px 16px 13px 16px;
+  }
+  span.Badge:hover {
+    background: rgba(0, 102, 205, 0.58);
+      color: white;
+  }
+
+  b {
+      position: absolute;
+      right: 0;
+      top: 0;
+      padding: 12px 16px 16px 16px;
+  }
+
+  b:hover {
+      background: rgba(0, 102, 205, 0.58);
+      color: white;
+  }
+
+  .Header {
+      background-color: rgba(0, 102, 205, 0.58);
+      padding: 30px 40px;
+      color: white;
+      text-align: center;
+      font-size: 20px;
+  }
+
+  .TodoForm {
+    display: flex;
+  }
+
+  input {
+    padding: 10px;
+    font-size: 20px;
+  }
+  button {
+      padding: 10px;
+      font-size: 20px;
+      background: #ddd;
+      text-align: center;
+      cursor: pointer;
+      transition: 0.3s;
+  }
+  button:hover {
+      background: #f9f9f9;
+  } 
+  </style>
+</head>
+<body>
+  
+    <div id="root"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.24.0/babel.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.1.0/react.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.1.0/react-dom.min.js"></script>
+  <script type="text/babel">
+    
+  const Title = ({count}) => {
+    return (
+      <div>
+         <h1>ToDo List ({count})</h1>
+      </div>
+    );
+  }
+  
+  const TodoForm = ({addTodo}) => {
+    // Input tracker
+    let input;
+
+    return (
+      <div>
+        <input ref={node => {
+          input = node;
+        }} />
+        <button onClick={() => {
+          addTodo(input.value);
+          input.value = '';
+        }}>
+          Add
+        </button>
+      </div>
+    );
+  };
+  
+  const Todo = ({todo, remove, complete}) => {
+    // Each Todo
+    return (
+      <li>
+        <span className={'Badge'} onClick={()=>
+          {complete(todo)}}>&#10004;</span>
+        <span className={todo.completed?'completed':null}>
+          {todo.title}
+        </span>
+        <b style={{ cursor: 'pointer' }} onClick={()=> {remove(
+          todo)}}> X </b>
+      </li>);
+  }
+
+  const TodoList = ({todolist, remove, complete}) => {
+    // Map through the todolist
+    const todoItem = todolist.map((todo, index) => {
+      return (<Todo key={index} todo={todo} remove={remove} complete={complete} />)
+    });
+    return (<ul>{todoItem}</ul>);
+  }
+  
+  class TodoApp extends React.Component {
+    constructor(props) {
+      super(props);
+      this.removeTodo = this.removeTodo.bind(this)
+      this.indexOfElement = this.indexOfElement.bind(this)
+      this.completeTodo = this.completeTodo.bind(this)
+      this.addTodo = this.addTodo.bind(this)
+      this.state = {
+        data: [
+          {title: "buy milk",completed: false},
+          {title: "send letter",completed: true},
+          {title: "meet with friend",completed: false}
+        ]
+      }
+    }
+    
+    indexOfElement(todo){
+      let data = this.state.data;
+      let indexOf = -1
+      data.forEach((item, index) => {
+        if(item.title === todo.title){
+          console.log(item.title)
+          indexOf = index;
+        }
+      })
+      return indexOf;
+    }
+    
+    removeTodo(todo){
+      let data = this.state.data;
+      let indexOfRemovedElem= this.indexOfElement(todo)
+      console.log(data.indexOf(todo))
+      data.splice(indexOfRemovedElem, 1)
+      this.setState({data: data})
+    }
+
+    
+    completeTodo(todo){
+      let data = this.state.data;
+      let indexOfRemovedElem = this.indexOfElement(todo)
+      data.splice(indexOfRemovedElem, 1, {title:todo.title, completed:!todo.completed})
+      this.setState({data: data})
+      console.log(this.state.data)
+    }
+    
+    addTodo(todoTitle){
+      let data = this.state.data;
+      data.push({title: todoTitle, completed: false})
+      this.setState({data: data})
+      console.log(this.state.data)
+    }
+    
+    render() {
+      return (
+        <div className={'TodoApp'}>
+          <div className={'Header'}>
+            <Title count={this.state.data.length} />
+            <TodoForm className={'TodoForm'} addTodo={this.addTodo} />
+          </div>
+          <TodoList  
+            todolist={this.state.data} 
+            remove={this.removeTodo} 
+            complete={this.completeTodo} />
+        </div>
+      );
+    }
+  }
+  
+  ReactDOM.render(
+    <TodoApp />,
+    document.getElementById('root')
+  );
+  </script>
+
+
+</body>
+</html>
